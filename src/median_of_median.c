@@ -13,23 +13,50 @@ void swap(int *p, int *q){
   *q = tmp;
 }
 
-int quick_select(int A[], int n, int k){
-  int i, j, pivot;
+void sort_k(int A[], int n, int k) {
+  for (int i = 0; i < n && i < k; i++) {
+    for (int j = i + 1; j < n; j++) {
+      if (A[j] < A[i]) swap(A + i, A + j);
+    }
+  }
+}
 
-// 真ん中の要素をピボットとする
-  pivot = A[n/2];
-  A[n/2] = A[0];
-  A[0] = pivot;
-  for(i = j = 1; i < n; i++){
-    if(A[i] <= pivot){
-      swap(A+i, A+j);
-      j++;
+int quick_select(int A[], int n, int k){
+  int i, le, eg, pivot, rem;
+
+  if (n <= 5) {
+    sort_k(A, n, k + 1);
+
+    return A[k];
+  }
+
+  for (i = 0; i < n / 5; i++) {
+    sort_k(A + 5 * i, 5, 3);
+    swap(A + i, A + 5 * i + 2);
+  }
+  rem = n % 5;
+  if (rem >= 1) {
+    sort_k(A + 5 * i, rem, rem / 2 + 1);
+    swap(A + i, A + 5 * i + rem / 2);
+    i++;
+  }
+  pivot = quick_select(A, i, i / 2);
+
+  for (i = le = eg = 0; i < n; i++) {
+    if (A[i] == pivot) swap(A + i, A + (eg++));
+    else if (A[i] < pivot) {
+      swap(A + i, A + le);
+      if (le != eg) swap(A + i, A + eg);
+      le++;
+      eg++;
     }
   }
 
-  if(j == k+1) return pivot;
-  else if(j < k+1) return quick_select(A+j, n-j, k-j);
-  else return quick_select(A+1, j-1, k);
+  // A[0] .. A[le - 1] < pivot = A[le] .. A[eg - 1] < A[eg] .. A[n - 1]
+
+  if (le <= k && k < eg) return pivot;
+  else if (eg <= k) return quick_select(A + eg, n - eg, k - eg);
+  else return quick_select(A, le, k);
 }
 
 
